@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import asyncio
 from telegram import Bot
+import random
 
 # === CONFIGURACIÓN ===
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -31,7 +32,6 @@ CATEGORIAS = [
 ]
 
 NUM_OFERTAS = 1
-TIEMPO_ENTRE_ENVIOS = 900  # 30 minutos
 
 bot = Bot(token=TOKEN)
 
@@ -73,8 +73,6 @@ async def extraer_info_producto(url):
         descuento_tag = soup.find("span", class_=lambda x: x and "andes-money-amount__discount" in x)
         if descuento_tag:
             descuento = descuento_tag.get_text(strip=True)
-
-        print(f"DEBUG: {titulo} | Actual: {precio} | Anterior: {precio_anterior} | Descuento: {descuento}")
 
         return {
             "titulo": titulo,
@@ -121,49 +119,45 @@ async def obtener_ofertas(termino_busqueda, maximo=1):
 
     return ofertas
 
-async def mandar_a_telegram(ofertas):
+async def mandar_a_telegram(ofertas, categoria):
     for o in ofertas:
         if o["precio_anterior"]:
             if o["descuento"]:
                 mensaje = (
-                    f"🔥 {o['titulo']}\n"
+                    f"🔥 {o['titulo']} ({categoria})\n"
                     f"~${o['precio_anterior']}~ → ${o['precio']} "
                     f"({o['descuento']})\n"
                     f"🔗 [Ver oferta]({o['link']})"
                 )
             else:
                 mensaje = (
-                    f"🔥 {o['titulo']}\n"
+                    f"🔥 {o['titulo']} ({categoria})\n"
                     f"~${o['precio_anterior']}~ → ${o['precio']}\n"
                     f"🔗 [Ver oferta]({o['link']})"
                 )
         elif o["descuento"]:
             mensaje = (
-                f"🔥 {o['titulo']}\n"
+                f"🔥 {o['titulo']} ({categoria})\n"
                 f"${o['precio']} ({o['descuento']})\n"
                 f"🔗 [Ver oferta]({o['link']})"
             )
         else:
-            mensaje = f"🔥 {o['titulo']} a solo ${o['precio']}\n🔗 [Ver oferta]({o['link']})"
+            mensaje = f"🔥 {o['titulo']} ({categoria}) a solo ${o['precio']}\n🔗 [Ver oferta]({o['link']})"
 
         try:
             await bot.send_message(chat_id=CHAT_ID, text=mensaje, parse_mode='Markdown')
-            print(f"✅ Mensaje enviado: {o['titulo']}")
+            print(f"✅ Mensaje enviado: {o['titulo']} ({categoria})")
         except Exception as e:
             print(f"❌ Error al enviar mensaje: {e}")
 
-async def loop_automatico():
-    while True:
-        for categoria in CATEGORIAS:
-            print(f"🔄 Buscando ofertas en: {categoria}")
-            ofertas = await obtener_ofertas(categoria, NUM_OFERTAS)
-            if ofertas:
-                await mandar_a_telegram(ofertas)
-            else:
-                print(f"⚠️ No se encontraron ofertas para: {categoria}")
-            await asyncio.sleep(10)  # pausa corta entre categorías
-        print(f"🕒 Esperando {TIEMPO_ENTRE_ENVIOS} segundos antes de repetir...")
-        await asyncio.sleep(TIEMPO_ENTRE_ENVIOS)
+async def main():
+    categoria = random.choice(CATEGORIAS)  # 🔀 escoge una categoría aleatoria
+    print(f"🔄 Buscando ofertas en: {categoria}")
+    ofertas = await obtener_ofertas(categoria, NUM_OFERTAS)
+    if ofertas:
+        await mandar_a_telegram(ofertas, categoria)
+    else:
+        print(f"⚠️ No se encontraron ofertas para: {categoria}")
 
 if __name__ == "__main__":
-    asyncio.run(loop_automatico())
+    asyncio.run(main())
