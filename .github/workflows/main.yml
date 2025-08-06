@@ -2,8 +2,8 @@ name: Bot Ofertas ML
 
 on:
   schedule:
-- cron: "*/15 * * * *"  # Ejecuta cada 15 minutos
-  workflow_dispatch:       # Permite ejecución manual
+    - cron: "*/15 * * * *"  # Ejecuta cada 15 minutos
+  workflow_dispatch:         # Permite ejecución manual
 
 jobs:
   run-bot:
