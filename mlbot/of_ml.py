@@ -1,3 +1,4 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 import asyncio
@@ -5,8 +6,8 @@ from telegram import Bot
 import random
 
 # === CONFIGURACIÓN ===
-TOKEN = "8378991301:AAGCPkLeOiZSalTjftV1PIWi3K6hpcT8Xa4"
-CHAT_ID = "-1002524247794"
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 CATEGORIAS_VALIDAS = [
     "audifonos", "celulares", "cargadores", "ropa-hombre", "zapatos",
     "accesorios-para-autos", "hogar", "relojes", "luces-led", "gimnasio"
