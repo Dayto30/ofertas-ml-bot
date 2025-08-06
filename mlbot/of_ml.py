@@ -10,7 +10,23 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 CATEGORIAS_VALIDAS = [
     "audifonos", "celulares", "cargadores", "ropa-hombre", "zapatos",
-    "accesorios-para-autos", "hogar", "relojes", "luces-led", "gimnasio"
+    "accesorios-para-autos", "hogar", "relojes", "luces-led", "gimnasio" , "cuidado-personal-y-belleza",
+    "bebes",
+    "ropa-y-calzado",
+    "bolsos-y-accesorios",
+    "deporte-y-fitness",
+    "libros",
+    "accesorios-para-vehiculos",
+    "arte-papeleria-y-manualidades",
+    "juegos-y-pasatiempos",
+    "decoracion-del-hogar",
+    "herramientas-y-construccion",
+    "electrodomesticos",
+    "otros",
+    "electronica-audio-y-video",
+    "computacion-y-televisores",
+    "camaras-y-accesorios",
+    "celulares-y-videojuegos",
 ]
 NUM_OFERTAS = 1
 
@@ -134,13 +150,18 @@ async def mandar_a_telegram(ofertas):
             print(f"❌ Error al enviar mensaje: {e}")
 
 async def loop_automatico():
-    categoria = random.choice(CATEGORIAS_VALIDAS)
-    print(f"🔄 Buscando ofertas en: {categoria}")
-    ofertas = await obtener_ofertas(categoria, NUM_OFERTAS)
-    if ofertas:
-        await mandar_a_telegram(ofertas)
-    else:
-        print(f"⚠️ No se encontraron ofertas para: {categoria}")
+    while True:
+        for categoria in CATEGORIAS:
+            print(f"🔄 Buscando ofertas en: {categoria}")
+            ofertas = await obtener_ofertas(categoria, NUM_OFERTAS)
+            if ofertas:
+                await mandar_a_telegram(ofertas)
+            else:
+                print(f"⚠️ No se encontraron ofertas para: {categoria}")
+            await asyncio.sleep(10)  # pausa corta entre categorías para no saturar
+        print(f"🕒 Esperando {TIEMPO_ENTRE_ENVIOS} segundos antes de repetir...")
+        await asyncio.sleep(TIEMPO_ENTRE_ENVIOS)
+
 
 if __name__ == "__main__":
     asyncio.run(loop_automatico())
