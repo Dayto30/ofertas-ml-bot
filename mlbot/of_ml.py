@@ -3,14 +3,15 @@ import requests
 from bs4 import BeautifulSoup
 import asyncio
 from telegram import Bot
-import random
 
 # === CONFIGURACIÓN ===
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-CATEGORIAS_VALIDAS = [
+
+CATEGORIAS = [
     "audifonos", "celulares", "cargadores", "ropa-hombre", "zapatos",
-    "accesorios-para-autos", "hogar", "relojes", "luces-led", "gimnasio" , "cuidado-personal-y-belleza",
+    "accesorios-para-autos", "hogar", "relojes", "luces-led", "gimnasio",
+    "cuidado-personal-y-belleza",
     "bebes",
     "ropa-y-calzado",
     "bolsos-y-accesorios",
@@ -28,7 +29,9 @@ CATEGORIAS_VALIDAS = [
     "camaras-y-accesorios",
     "celulares-y-videojuegos",
 ]
+
 NUM_OFERTAS = 1
+TIEMPO_ENTRE_ENVIOS = 900  # 30 minutos
 
 bot = Bot(token=TOKEN)
 
@@ -123,25 +126,25 @@ async def mandar_a_telegram(ofertas):
         if o["precio_anterior"]:
             if o["descuento"]:
                 mensaje = (
-                    f"🎧 {o['titulo']}\n"
+                    f"🔥 {o['titulo']}\n"
                     f"~${o['precio_anterior']}~ → ${o['precio']} "
                     f"({o['descuento']})\n"
                     f"🔗 [Ver oferta]({o['link']})"
                 )
             else:
                 mensaje = (
-                    f"🎧 {o['titulo']}\n"
+                    f"🔥 {o['titulo']}\n"
                     f"~${o['precio_anterior']}~ → ${o['precio']}\n"
                     f"🔗 [Ver oferta]({o['link']})"
                 )
         elif o["descuento"]:
             mensaje = (
-                f"🎧 {o['titulo']}\n"
+                f"🔥 {o['titulo']}\n"
                 f"${o['precio']} ({o['descuento']})\n"
                 f"🔗 [Ver oferta]({o['link']})"
             )
         else:
-            mensaje = f"🎧 {o['titulo']} a solo ${o['precio']}\n🔗 [Ver oferta]({o['link']})"
+            mensaje = f"🔥 {o['titulo']} a solo ${o['precio']}\n🔗 [Ver oferta]({o['link']})"
 
         try:
             await bot.send_message(chat_id=CHAT_ID, text=mensaje, parse_mode='Markdown')
@@ -158,11 +161,9 @@ async def loop_automatico():
                 await mandar_a_telegram(ofertas)
             else:
                 print(f"⚠️ No se encontraron ofertas para: {categoria}")
-            await asyncio.sleep(10)  # pausa corta entre categorías para no saturar
+            await asyncio.sleep(10)  # pausa corta entre categorías
         print(f"🕒 Esperando {TIEMPO_ENTRE_ENVIOS} segundos antes de repetir...")
         await asyncio.sleep(TIEMPO_ENTRE_ENVIOS)
 
-
 if __name__ == "__main__":
     asyncio.run(loop_automatico())
-
